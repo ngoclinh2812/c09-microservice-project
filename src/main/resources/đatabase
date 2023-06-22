@@ -1,0 +1,148 @@
+CREATE DATABASE module04_casestudy;
+USE module04_casestudy;
+
+-- CREATE TABLE PRODUCTS
+CREATE TABLE products(
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `category` INT NULL,
+    FOREIGN KEY (`category`) REFERENCES categories(`category_id`),
+    `supplier` INT NULL,
+    FOREIGN KEY (`supplier`) REFERENCES suppliers(`supplier_id`),
+    `description` LONGTEXT NULL,
+    `unit` INT NULL,
+    FOREIGN KEY (`unit`) REFERENCES calculation_units(`unit_id`),
+    `unit_price` FLOAT,
+    `stock` INT NULL,
+    `date added` DATE, -- YYYY-MM-DD
+    `status` BOOLEAN
+);
+
+drop table products;
+
+ALTER TABLE products MODIFY `date added` DATETIME DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE products MODIFY `status` BOOLEAN DEFAULT 1;
+
+-- CREATE TABLE SUPPLIERS
+CREATE TABLE suppliers (
+	`supplier_id` INT PRIMARY KEY AUTO_INCREMENT,
+    `supplier_name` VARCHAR(255) NOT NULL
+);
+
+-- CREATE TABLE UNITS
+CREATE TABLE calculation_units(
+	`unit_id` INT PRIMARY KEY AUTO_INCREMENT,
+    `unit_name` VARCHAR(10) NOT NULL
+);
+
+-- CREATE TABLE CATEGORIES
+CREATE TABLE categories(
+	`category_id` INT PRIMARY KEY AUTO_INCREMENT,
+    `category_name` VARCHAR(255) NOT NULL
+);
+
+-- CREATE TABLE CUSTOMERS
+CREATE TABLE customers (
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `business field` INT,
+    FOREIGN KEY (`business field`) REFERENCES fields(id),
+    `receiver01_name` VARCHAR(255),
+    `receiver01_phone` VARCHAR(15),
+    `receiver01_email` VARCHAR(255),
+    `receiver02_name` VARCHAR(255),
+    `receiver02_phone` VARCHAR(15),
+    `receiver02_email` VARCHAR(255),
+    `date added` DATE
+);
+
+-- CREATE BUSINESS FIELDS
+CREATE TABLE `fields` (
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `field_name` VARCHAR(255)
+);
+
+-- CREATE EMPLOYEE
+CREATE TABLE employees (
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255),
+    `phone` VARCHAR(15),
+    `department` INT,
+    FOREIGN KEY (`department`) REFERENCES departments(department_id),
+    `position` VARCHAR(100),
+    `manager` INT,
+    `date added` date,
+    `status` BOOLEAN
+);
+
+-- CREATE TABLE POSITION
+CREATE TABLE positions(
+`id` INT PRIMARY KEY AUTO_INCREMENT,
+ `department` INT,
+ FOREIGN KEY (`department`) REFERENCES departments(department_id),
+ `position_name` VARCHAR(50) NOT NULL
+);
+
+DROP TABLE positions;
+
+-- CREATE TABLE DEPARTMENT
+CREATE TABLE departments(
+	`department_id` INT PRIMARY KEY AUTO_INCREMENT,
+    `department_name` VARCHAR(255)
+);
+
+-- CREATE VIEW PRODUCT LIST
+CREATE VIEW view_productList AS
+SELECT p.id, p.`name`, c.category_name, s.supplier_name, p.`description`, cu.unit_name, p.unit_price, p.stock, p.`date added`, p.`status`
+FROM products p
+LEFT JOIN categories c ON p.category = c.category_id
+LEFT JOIN suppliers s ON p.supplier = s.supplier_id
+LEFT JOIN calculation_units cu ON p.unit = cu.`unit_id`;
+
+-- CREATE VIEW EMPLOYEE LIST
+CREATE VIEW view_employeelist AS
+SELECT e.id, e.`name`, e.email, e.phone, d.department_name, e.position, e1.`name` AS `manager`, e.`date added`, e.`status`
+FROM employees e
+LEFT JOIN departments d ON e.department = d.department_id
+LEFT JOIN employees e1 ON e.manager = e1.id
+ORDER BY e.id ASC;
+
+-- STORED PROCEDURE: CREATE PRODUCT
+DELIMITER //
+CREATE PROCEDURE AddNewProduct(IN input_name VARCHAR(255),
+								IN input_category INT,
+                                IN input_supplier INT,
+                                IN input_description LONGTEXT,
+                                IN input_unit INT,
+                                IN input_unit_price float,
+                                IN input_stock INT)
+BEGIN
+
+INSERT INTO products (`name`, category, supplier, `description`, unit, unit_price, stock)
+	VALUES (input_name, input_category, input_supplier, input_description, input_unit, input_unit_price, input_stock);
+
+END //
+DELIMITER ;
+
+
+-- STORED PROCEDURE: FIND PRODUCT BY NAME (?)
+DELIMITER //
+CREATE PROCEDURE FindProductByName(IN input VARCHAR(20))
+BEGIN
+
+SELECT *
+FROM view_productlist products
+WHERE products.`name` LIKE '%input%';
+
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+
